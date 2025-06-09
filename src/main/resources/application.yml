@@ -1,24 +1,50 @@
+#spring:
+#  application:
+#    name: gateway-service
+#
+#  cloud:
+#    gateway:
+#      server:
+#        webflux:
+#          routes:
+#            - id: example-service
+#              uri: lb://example-service
+#              predicates:
+#                - Path=/example/**
+#
+#server:
+#  port: 8080
+#
+#eureka:
+#  client:
+#    register-with-eureka: true
+#    fetch-registry: true
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka/
 spring:
   application:
     name: gateway-service
-
   cloud:
     gateway:
       server:
         webflux:
-          routes:
-            - id: example-service
-              uri: lb://example-service
-              predicates:
-                - Path=/example/**
-
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
 
 server:
-  port: 8080
+  port: ${PORT:10360}
 
 eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:10372/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
