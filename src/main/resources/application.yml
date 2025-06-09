@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-service  # 애플리케이션 이름
+  cloud:
+    gateway:
+      routes:
+        - id: book-service  # 라우트 ID
+          uri: lb://book-service  # 실제 서비스 주소 (직접 주소 or Eureka 사용 시 lb://)
+          predicates:
+            - Path=/api/book/**  # 이 경로로 들어오는 요청만 매칭
+
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/order/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://user:1234@localhost:8761
+    register-with-eureka: true
+    fetch-registry: true
