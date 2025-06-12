@@ -23,6 +23,30 @@ spring:
             - Path=/order-api/**
           filters:
             - RewritePath=/order-api/(?<segment>.*), /$\{segment}
+        - id: book-api
+          uri: lb://book-api
+          predicates:
+            - Path=/book-api/**
+          filters:
+            - RewritePath=/book-api/(?<segment>.*), /$\{segment}
+        - id: cart-api
+          uri: lb://cart-api
+          predicates:
+            - Path=/cart-api/**
+          filters:
+            - RewritePath=/cart-api/(?<segment>.*), /$\{segment}
+        - id: review-api
+          uri: lb://review-api
+          predicates:
+            - Path=/review-api/**
+          filters:
+            - RewritePath=/review-api/(?<segment>.*), /$\{segment}
+        - id: account-api
+          uri: lb://account-api
+          predicates:
+            - Path=/account-api/**
+          filters:
+            - RewritePath=/account-api/(?<segment>.*), /$\{segment}
 
 management:
   endpoints:
