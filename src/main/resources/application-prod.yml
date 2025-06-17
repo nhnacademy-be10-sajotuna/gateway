@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: gateway
+  config:
+    import: configserver:http://localhost:10379
+  cloud:
+    config:
+      label: dev
