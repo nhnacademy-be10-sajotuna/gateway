@@ -2,6 +2,7 @@ package com.sajotuna.gateway.filter;
 
 import com.sajotuna.gateway.tokenParser.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -18,6 +19,7 @@ import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AuthorizationHeaderFilter implements GlobalFilter, Ordered {
     private final RedisTemplate<String, Object> redisTemplate;
     private final JwtTokenProvider jwtTokenProvider;
@@ -42,8 +44,9 @@ public class AuthorizationHeaderFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
 
         String accessToken = getTokenFromCookie(request, "access_token");
-
         String refreshToken = getTokenFromCookie(request, "refresh_token");
+        log.info("Access token: {}", accessToken);
+        log.info("Refresh token: {}", refreshToken);
 
         if (accessToken != null && jwtTokenProvider.validate(accessToken)) {
             String userId = jwtTokenProvider.getIdFromToken(accessToken);
@@ -69,6 +72,7 @@ public class AuthorizationHeaderFilter implements GlobalFilter, Ordered {
                         .httpOnly(true)
                         .secure(true)
                         .path("/")
+                        .domain("nhn-team04.shop")
                         .maxAge(ACCESS_TOKEN_EXPIRES)
                         .sameSite("Lax")
                         .build();
