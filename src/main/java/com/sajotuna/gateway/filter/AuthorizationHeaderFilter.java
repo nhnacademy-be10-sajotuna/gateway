@@ -7,6 +7,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -43,12 +44,17 @@ public class AuthorizationHeaderFilter implements GlobalFilter, Ordered {
 
         ServerHttpRequest request = exchange.getRequest();
 
-        String accessToken = getTokenFromCookie(request, "access_token");
-        String refreshToken = getTokenFromCookie(request, "refresh_token");
-        log.info("Access token: {}", accessToken);
-        log.info("Refresh token: {}", refreshToken);
+        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        if (accessToken != null && jwtTokenProvider.validate(accessToken)) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return unauthorized(exchange);
+        }
+
+        log.info("Authorization header: {}", authHeader);
+
+        String accessToken = authHeader.substring(7);
+
+        if (jwtTokenProvider.validate(accessToken)) {
             String userId = jwtTokenProvider.getIdFromToken(accessToken);
             String userRole = jwtTokenProvider.getRoleFromToken(accessToken);
 
@@ -59,41 +65,12 @@ public class AuthorizationHeaderFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange.mutate().request(modifiedRequest).build());
         }
 
-        if (refreshToken != null && jwtTokenProvider.validate(refreshToken)) {
-            String userId = jwtTokenProvider.getIdFromToken(refreshToken);
-            String userRole = jwtTokenProvider.getRoleFromToken(refreshToken);
-            String email = jwtTokenProvider.getEmailFromToken(refreshToken);
-
-            String storedRefreshToken = (String) redisTemplate.opsForValue().get("refresh_token:"+email);
-            if (refreshToken.equals(storedRefreshToken)) {
-                String newAccessToken = jwtTokenProvider.generateAccessToken(userId, email, userRole);
-
-                ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", newAccessToken)
-                        .httpOnly(true)
-                        .secure(true)
-                        .path("/")
-                        .domain("nhn-team04.shop")
-                        .maxAge(ACCESS_TOKEN_EXPIRES)
-                        .sameSite("Lax")
-                        .build();
-
-                exchange.getResponse().addCookie(accessTokenCookie);
-
-                ServerHttpRequest modifiedRequest = request.mutate()
-                        .header("X-User-Id", userId)
-                        .header("X-User-Role", userRole)
-                        .build();
-                return chain.filter(exchange.mutate().request(modifiedRequest).build());
-            }
-        }
-        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        return exchange.getResponse().setComplete();
+        return unauthorized(exchange);
     }
 
-    private String getTokenFromCookie(ServerHttpRequest request, String name) {
-        return request.getCookies().getFirst(name) != null
-                ? request.getCookies().getFirst(name).getValue()
-                : null;
+    private Mono<Void> unauthorized(ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        return exchange.getResponse().setComplete();
     }
 
     @Override

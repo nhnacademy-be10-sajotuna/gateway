@@ -15,7 +15,6 @@ import java.util.Date;
 public class JwtTokenProvider {
     private final Environment env;
     private byte[] secretKey;
-    private static final Long ACCESS_TOKEN_EXPIRES = 1800 * 1000L;
 
     public JwtTokenProvider(Environment env) {
         this.env = env;
@@ -61,22 +60,4 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
-
-    public String generateAccessToken(String userId, String email, String role) {
-        Claims claims = Jwts.claims();
-        claims.put("email", email);
-        claims.put("role", role);
-
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + ACCESS_TOKEN_EXPIRES))
-                .signWith(getSigningKey(secretKey))
-                .compact();
-    }
-
-    public static Key getSigningKey(byte[] secretKey) {
-        return Keys.hmacShaKeyFor(secretKey);
-    }
 }
