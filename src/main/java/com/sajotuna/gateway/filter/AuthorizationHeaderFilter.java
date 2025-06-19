@@ -46,11 +46,12 @@ public class AuthorizationHeaderFilter implements GlobalFilter, Ordered {
 
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
+        log.info("Authorization header: {}", authHeader);
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return unauthorized(exchange);
         }
 
-        log.info("Authorization header: {}", authHeader);
 
         String accessToken = authHeader.substring(7);
 
