@@ -6,15 +6,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -55,7 +58,7 @@ public class AuthorizationHeaderFilter implements GlobalFilter, Ordered {
 
         String accessToken = authHeader.substring(7);
 
-        if (jwtTokenProvider.validate(accessToken)) {
+        if (jwtTokenProvider.validate(accessToken, exchange)) {
             String userId = jwtTokenProvider.getIdFromToken(accessToken);
             String userRole = jwtTokenProvider.getRoleFromToken(accessToken);
 
@@ -70,7 +73,18 @@ public class AuthorizationHeaderFilter implements GlobalFilter, Ordered {
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
+        Boolean isExpired = exchange.getAttribute("tokenExpired");
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+
+        if (Boolean.TRUE.equals(isExpired)) {
+            exchange.getResponse().getHeaders().add("X-Error-Code", "EXPIRED_TOKEN");
+
+            byte[] bytes = "{\"code\":\"EXPIRED_TOKEN\",\"message\":\"Access token expired\"}".getBytes(StandardCharsets.UTF_8);
+            DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            return exchange.getResponse().writeWith(Mono.just(buffer));
+        }
+
         return exchange.getResponse().setComplete();
     }
 

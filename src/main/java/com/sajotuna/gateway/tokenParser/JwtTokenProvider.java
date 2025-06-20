@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -21,13 +22,16 @@ public class JwtTokenProvider {
         secretKey = env.getProperty("token.secret").getBytes(StandardCharsets.UTF_8);
     }
 
-    public boolean validate(String token) {
+    public boolean validate(String token, ServerWebExchange exchange) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(token);
             return true;
+        } catch (ExpiredJwtException e) {
+            exchange.getAttributes().put("tokenExpired", true);
+            return false;
         } catch (Exception e) {
             return false;
         }
