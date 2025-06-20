@@ -1,37 +1,44 @@
 package com.sajotuna.gateway.tokenParser;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.core.env.Environment;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
 
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.util.Date;
 
 @Component
-public class JwtTokenProvider {
+public class JwtTokenValidator {
+    private final RedisTemplate<String, Object> redisTemplate;
     private final Environment env;
     private byte[] secretKey;
 
-    public JwtTokenProvider(Environment env) {
+    public JwtTokenValidator(Environment env, RedisTemplate<String, Object> redisTemplate) {
         this.env = env;
+        this.redisTemplate = redisTemplate;
         secretKey = env.getProperty("token.secret").getBytes(StandardCharsets.UTF_8);
     }
 
-    public boolean validate(String token, ServerWebExchange exchange) {
+    public boolean validateRefreshToken(String refreshToken) {
+        if (refreshToken == null) {
+            return false;
+        }
+        String email = getEmailFromToken(refreshToken);
+        String savedRefreshToken = (String) redisTemplate.opsForValue().get("refresh_token:" + email);
+        if (!refreshToken.equals(savedRefreshToken)) {
+            return false;
+        }
+        return validate(refreshToken);
+    }
+
+    public boolean validate(String token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (ExpiredJwtException e) {
-            exchange.getAttributes().put("tokenExpired", true);
-            return false;
         } catch (Exception e) {
             return false;
         }
