@@ -65,7 +65,6 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
             }
             exchange.getResponse().setStatusCode(HttpStatus.FOUND);
             exchange.getResponse().getHeaders().setLocation(URI.create("/token/refresh"));
-            exchange.getResponse().getHeaders().set("Referer", path);
             return exchange.getResponse().setComplete();
         }
 
