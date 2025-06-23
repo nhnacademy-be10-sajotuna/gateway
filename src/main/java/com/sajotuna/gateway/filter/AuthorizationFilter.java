@@ -26,9 +26,10 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
     private static final List<Pattern> WHITELIST_PATTERNS = List.of(
             Pattern.compile("^/account-api/api/users/login$"),
             Pattern.compile("^/account-api/api/users$"),
-            Pattern.compile("^/front/login$"),              // front 관련 모든 요청 허용
-            Pattern.compile("^/front/token/refresh$"),              // front 관련 모든 요청 허용
-            Pattern.compile("^/actuator(/.*)?$")         // actuator도 허용
+            Pattern.compile("^/$"),
+            Pattern.compile("^/login$"),
+            Pattern.compile("^/token/refresh$"),
+            Pattern.compile("^/actuator(/.*)?$")
     );
 
     @Override
@@ -59,11 +60,11 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
         if (!jwtTokenValidator.validate(accessToken)) {
             if(!jwtTokenValidator.validateRefreshToken(refreshToken)) {
                 exchange.getResponse().setStatusCode(HttpStatus.FOUND);
-                exchange.getResponse().getHeaders().setLocation(URI.create("/front/login"));
+                exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
                 return exchange.getResponse().setComplete();
             }
             exchange.getResponse().setStatusCode(HttpStatus.FOUND);
-            exchange.getResponse().getHeaders().setLocation(URI.create("/front/token/refresh"));
+            exchange.getResponse().getHeaders().setLocation(URI.create("/token/refresh"));
             exchange.getResponse().getHeaders().set("Referer", path);
             return exchange.getResponse().setComplete();
         }

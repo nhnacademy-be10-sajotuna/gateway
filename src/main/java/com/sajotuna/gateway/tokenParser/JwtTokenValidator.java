@@ -24,12 +24,15 @@ public class JwtTokenValidator {
         if (refreshToken == null) {
             return false;
         }
+        if (!validate(refreshToken)) {
+            return false;
+        }
         String email = getEmailFromToken(refreshToken);
         String savedRefreshToken = (String) redisTemplate.opsForValue().get("refresh_token:" + email);
         if (!refreshToken.equals(savedRefreshToken)) {
             return false;
         }
-        return validate(refreshToken);
+        return true;
     }
 
     public boolean validate(String token) {
