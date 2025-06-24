@@ -24,9 +24,8 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
     private final JwtTokenValidator jwtTokenValidator;
 
     private static final List<Pattern> WHITELIST_PATTERNS = List.of(
-            Pattern.compile("^/account-api/api/users/login$"),
-            Pattern.compile("^/account-api/api/users$"),
             Pattern.compile("^/$"),
+            Pattern.compile("^/register$"),
             Pattern.compile("^/login$"),
             Pattern.compile("^/token/refresh$"),
             Pattern.compile("^/actuator(/.*)?$")
