@@ -23,22 +23,20 @@ import java.util.regex.Pattern;
 public class AuthorizationFilter implements GlobalFilter, Ordered {
     private final JwtTokenValidator jwtTokenValidator;
 
-    private static final List<Pattern> WHITELIST_PATTERNS = List.of(
-            Pattern.compile("^/$"),
-            Pattern.compile("^/register$"),
-            Pattern.compile("^/login$"),
-            Pattern.compile("^/token/refresh$"),
-            Pattern.compile("^/actuator(/.*)?$")
+    private static final List<Pattern> BLACKLIST_PATTERNS = List.of(
+            Pattern.compile("^/address.*$"),
+            Pattern.compile("^/users/me$"),
+            Pattern.compile("^/withdraw$")
     );
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
-        boolean isWhiteListed = WHITELIST_PATTERNS.stream()
+        boolean isBlackListed = BLACKLIST_PATTERNS.stream()
                 .anyMatch(pattern -> pattern.matcher(path).matches());
 
-        if (isWhiteListed) {
+        if (!isBlackListed) {
             log.info("[Whitelist] 인증 체크 제외: {}", path);
             return chain.filter(exchange);  // 인증 필터 적용 안함
         }
