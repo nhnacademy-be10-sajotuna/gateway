@@ -1,6 +1,7 @@
 package com.sajotuna.gateway.filter;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -11,7 +12,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
-
+@Slf4j
 public class GuestCartIdHeaderFilter implements GlobalFilter , Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -23,7 +24,7 @@ public class GuestCartIdHeaderFilter implements GlobalFilter , Ordered {
         }
 
         if (guestCartId != null) {
-            System.out.println(guestCartId);
+            log.info("Guest Cart ID: " + guestCartId);
             ServerHttpRequest modifiedRequest = request.mutate()
                     .header("X-Guest-Cart-Id", guestCartId)
                     .build();
