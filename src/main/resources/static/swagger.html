@@ -10,7 +10,13 @@
 <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
 <script>
     const ui = SwaggerUIBundle({
-        url: "/account-api/v3/api-docs", // ✅ 여기에 정확한 경로
+        urls: [
+            { name: 'Account API', url: '/account-api/v3/api-docs' },
+            { name: 'Order API', url: '/order-api/v3/api-docs' },
+            { name: 'Book API', url: '/order-api/v3/api-docs' },
+            { name: 'Review API', url: '/order-api/v3/api-docs' },
+            { name: 'Cart API', url: '/order-api/v3/api-docs' }
+        ],
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [
