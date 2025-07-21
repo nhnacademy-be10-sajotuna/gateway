@@ -8,10 +8,11 @@
 <body>
 <div id="swagger-ui"></div>
 <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+<script src="https://unpkg.com/swagger-ui-dist@4.18.3/swagger-ui-standalone-preset.js"></script>
 <script>
-    const ui = SwaggerUIBundle({
+    SwaggerUIBundle({
         urls: [
-            { name: 'Account API', url: '/account-api/v3/api-docs' },
+             { name: 'Account API', url: '/account-api/v3/api-docs' },
             { name: 'Order API', url: '/order-api/v3/api-docs' },
             { name: 'Book API', url: '/book-api/v3/api-docs' },
             { name: 'Review API', url: '/review-api/v3/api-docs' },
@@ -20,9 +21,10 @@
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [
-            SwaggerUIBundle.presets.apis
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIStandalonePreset
         ],
-        layout: "BaseLayout"
+        layout: "StandaloneLayout"
     });
 </script>
 </body>
